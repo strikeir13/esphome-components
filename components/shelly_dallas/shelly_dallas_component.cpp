@@ -47,7 +47,9 @@ void DallasComponent::setup() {
   for (auto &address : raw_sensors) {
     auto *address8 = reinterpret_cast<uint8_t *>(&address);
     if (crc8(address8, 7) != address8[7]) {
-      ESP_LOGW(TAG, "Dallas device 0x%s has invalid CRC.", format_hex(address).c_str());
+      char address_hex[17];
+      format_hex_to(address_hex, address);
+      ESP_LOGW(TAG, "Dallas device 0x%s has invalid CRC.", address_hex);
       continue;
     }
     if (address8[0] != DALLAS_MODEL_DS18S20 && address8[0] != DALLAS_MODEL_DS1822 &&
@@ -83,7 +85,9 @@ void DallasComponent::dump_config() {
   } else {
     ESP_LOGD(TAG, "  Found sensors:");
     for (auto &address : this->found_sensors_) {
-      ESP_LOGD(TAG, "    0x%s", format_hex(address).c_str());
+      char address_hex[17];
+      format_hex_to(address_hex, address);
+      ESP_LOGD(TAG, "    0x%s", address_hex);
     }
   }
 
@@ -156,9 +160,10 @@ void DallasTemperatureSensor::set_index(uint8_t index) { this->index_ = index; }
 uint8_t *DallasTemperatureSensor::get_address8() { return reinterpret_cast<uint8_t *>(&this->address_); }
 const std::string &DallasTemperatureSensor::get_address_name() {
   if (this->address_name_.empty()) {
-    this->address_name_ = std::string("0x") + format_hex(this->address_);
+    char address_hex[17];
+    format_hex_to(address_hex, this->address_);
+    this->address_name_ = std::string("0x") + address_hex;
   }
-
   return this->address_name_;
 }
 bool IRAM_ATTR DallasTemperatureSensor::read_scratch_pad() {
